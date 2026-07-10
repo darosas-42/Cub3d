@@ -6,8 +6,7 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <math.h>
-// Incluye tu librería MLX correspondiente
-// # include "mlx.h" o # include "MLX42/MLX42.h"
+# include "../MLX42/include/MLX42/MLX42.h" // Incluye tu librería MLX correspondiente
 
 // --- CONSTANTES ---
 # define SCREEN_W 1024
