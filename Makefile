@@ -36,7 +36,7 @@ $(NAME): $(OBJECTS) $(MLX42) $(LIBFT)
 	$(COMPILER) $(FLAGS) $(OBJECTS) $(MLX42) $(LIBFT) $(LIB_SYS) -o $(NAME)
 
 # Aquí es donde se crea la carpeta para los ".o" si la carpeta no existe de antes
-$(OBJ_DIR)/%.o: %.c
+$(OBJ_DIR)/%.o: %.c | mlx42
 	@mkdir -p $(dir $@)
 	$(COMPILER) $(FLAGS) -c $< -o $@
 
