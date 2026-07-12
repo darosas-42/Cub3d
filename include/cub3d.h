@@ -8,6 +8,9 @@
 # include <math.h>
 # include "../MLX42/include/MLX42/MLX42.h" // Incluye tu librería MLX correspondiente
 
+# include "ft_printf.h" // Added to use printf
+# include "libft.h" // Added to use strlen and strnstr
+
 // --- CONSTANTES ---
 # define SCREEN_W 1024
 # define SCREEN_H 768

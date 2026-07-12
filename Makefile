@@ -20,7 +20,7 @@ SRC_PA_PATH = $(SRC_DIR)/Persona_A
 SRC_PB_PATH = $(SRC_DIR)/Persona_B
 
 # En SRC_PA es donde pones todos los archivos que codees, F.E. "$(SRC_PA_PATH)/main.c"
-SRC_PA = 
+SRC_PA = $(SRC_PA_PATH)/main.c
 
 SRC_PB = $(SRC_PB_PATH)/main.c
 
