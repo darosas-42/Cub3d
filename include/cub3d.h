@@ -6,8 +6,7 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <math.h>
-# include "../MLX42/include/MLX42/MLX42.h" // Incluye tu librería MLX correspondiente
-
+# include "MLX42.h" // Incluye tu librería MLX correspondiente
 # include "ft_printf.h" // Added to use printf
 # include "libft.h" // Added to use strlen and strnstr
 

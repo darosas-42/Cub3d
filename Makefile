@@ -2,7 +2,11 @@ NAME = cub3d
 
 COMPILER = cc
 
-FLAGS = -Wall -Werror -Wextra -I Libft/includes -I ./include
+INCLUDES = -I ./Libft/includes \
+		   -I ./include \
+		   -I ./MLX42/include/MLX42
+
+FLAGS = -Wall -Werror -Wextra $(INCLUDES)
 
 # Librerias del sistema que le hace falta a MLX42 
 LIB_SYS = -ldl -lglfw -pthread -lm
