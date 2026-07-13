@@ -66,13 +66,13 @@ void	render_frame(t_game *game)
 	double	cameraX;
 	double	rayDirX;
 	double	rayDirY;
-	int	mapX;
-	int	mapY;
+	//int	mapX;
+	//int	mapY;
 	int	x;
 
 	x = 0;
-	mapX = (int)game->player.x;
-	mapY = (int)game->player.y;
+	//mapX = (int)game->player.x;
+	//mapY = (int)game->player.y;
 	while (x < SCREEN_W)
 	{
 		cameraX = 2 * x / (double)SCREEN_W - 1;
