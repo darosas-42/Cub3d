@@ -9,6 +9,7 @@
 /*   Updated: 2026/07/12 11:53:54 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "cub3d.h"
 
 static void	conststr(const char *s)
@@ -23,13 +24,29 @@ static void	conststr(const char *s)
 	write(1, "\n", 1);
 }
 
+void	ft_free_map(t_game *game)
+{
+/* 	int	i;
+
+	if (!game->map.grid)
+		return;
+	i = game->map.height;
+	while (--i > -1)
+		free(game->map.grid[i]); */
+	free(game->map.grid);
+	game->map.grid = NULL;
+}
+
 void	ft_hook(void* param)
 {
 	t_game *game;
 
 	game = param;
 	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_ESCAPE))
+	{
 		mlx_close_window(game->gfx.mlx_ptr);
+		ft_free_map(game);
+	}
 }
 
 void init_test_game(t_game *game)
@@ -66,22 +83,106 @@ void	render_frame(t_game *game)
 	double	cameraX;
 	double	rayDirX;
 	double	rayDirY;
-	//int	mapX;
-	//int	mapY;
+	int	mapX;
+	int	mapY;
+	double	deltaDistX;
+	double	deltaDistY;
+	int	stepX;
+	int	stepY;
+	double	sideDistX;
+	double	sideDistY;
 	int	x;
+	int	hit;
+	int	side;
+	double	perpWallDist;
+	int	lineHeight;
+	int	drawStart;
+	int	drawEnd;
+	int y;
+	double	oldDirX;
+	double	rotSpeed;
 
 	x = 0;
-	//mapX = (int)game->player.x;
-	//mapY = (int)game->player.y;
 	while (x < SCREEN_W)
 	{
+		mapX = (int)game->player.x;
+		mapY = (int)game->player.y;
 		cameraX = 2 * x / (double)SCREEN_W - 1;
 		rayDirX = game->player.dir_x + game->player.plane_x * cameraX;
 		rayDirY = game->player.dir_y + game->player.plane_y * cameraX;
-		if (x == 0 || x == (SCREEN_W / 2) || x == (SCREEN_W - 1))
-			printf("X = %f, Y = %f \n", rayDirX, rayDirY);
+		if (rayDirX == 0)
+			deltaDistX = 1e30;
+		else
+			deltaDistX = fabs(1 / rayDirX);
+		if (rayDirY == 0)
+			deltaDistY = 1e30;
+		else
+			deltaDistY = fabs(1 / rayDirY);
+		if (rayDirX < 0)
+		{
+			stepX = -1;
+			sideDistX = (game->player.x - mapX) * deltaDistX;
+		}
+		else
+		{
+			stepX = 1;
+			sideDistX = (mapX + 1 - game->player.x) * deltaDistX;
+		}
+		if (rayDirY < 0)
+		{
+			stepY = -1;
+			sideDistY = (game->player.y - mapY) * deltaDistY;
+		}
+		else
+		{
+			stepY = 1;
+			sideDistY = (mapY + 1 - game->player.y) * deltaDistY;
+		}
+		hit = 0;
+		while (hit == 0)
+		{
+			if (sideDistX < sideDistY)
+			{
+				sideDistX += deltaDistX;
+				mapX += stepX;
+				side = 0;
+			}
+			else
+			{
+				sideDistY += deltaDistY;
+				mapY += stepY;
+				side = 1;
+			}
+			if (game->map.grid[mapX][mapY] == '1')
+				hit = 1;
+		}
+		if (side == 0)
+			perpWallDist = (sideDistX - deltaDistX);
+		else
+			perpWallDist = (sideDistY - deltaDistY);
+		lineHeight = (int)(SCREEN_H / perpWallDist);
+		drawStart = -lineHeight / 2 + SCREEN_H / 2;
+		if (drawStart < 0)
+			drawStart = 0;
+		drawEnd = lineHeight / 2 + SCREEN_H / 2;
+		if (drawEnd >= SCREEN_H)
+			drawEnd = SCREEN_H - 1;
+		y = drawStart;
+		while (y <= drawEnd)
+		{
+			if (side == 0)
+				mlx_put_pixel(game->gfx.img_ptr, x, y, get_rgba(255, 222, 33, 255));
+			else
+				mlx_put_pixel(game->gfx.img_ptr, x, y, get_rgba(180, 222, 33, 255));
+			y++;
+		}
+		oldDirX = game->player.dir_x;
+		rotSpeed = 0.05;
+		game->player.dir_x = game->player.dir_x * cos(-rotSpeed) - game->player.dir_y * sin(-rotSpeed);
+		game->player.dir_y = oldDirX * sin(-rotSpeed) + game->player.dir_y * cos(-rotSpeed);
 		x++;
 	}
+	
 
 }
 
@@ -128,6 +229,7 @@ int	main(void)
 	render_frame(&game);
 
 	mlx_loop(game.gfx.mlx_ptr);
+	mlx_delete_image(game.gfx.mlx_ptr, game.gfx.img_ptr);
 	mlx_terminate(game.gfx.mlx_ptr);
 	return (EXIT_SUCCESS);
 }
