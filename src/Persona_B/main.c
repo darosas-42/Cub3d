@@ -6,7 +6,7 @@
 /*   By: dreix <darosas-@student.42malaga.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/09 16:07:04 by dreix             #+#    #+#             */
-/*   Updated: 2026/07/14 04:22:56 by dreix            ###   ########.fr       */
+/*   Updated: 2026/07/15 01:27:59 by dreix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,18 +35,6 @@ void	ft_free_map(t_game *game)
 		free(game->map.grid[i]); */
 	free(game->map.grid);
 	game->map.grid = NULL;
-}
-
-void	ft_hook(void* param)
-{
-	t_game *game;
-
-	game = param;
-	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_ESCAPE))
-	{
-		mlx_close_window(game->gfx.mlx_ptr);
-		ft_free_map(game);
-	}
 }
 
 void init_test_game(t_game *game)
@@ -99,9 +87,21 @@ void	render_frame(t_game *game)
 	int	drawStart;
 	int	drawEnd;
 	int y;
-	double	oldDirX;
-	double	rotSpeed;
 
+	x = 0;
+	while (x < SCREEN_W)
+	{
+		y = 0;
+		while (y < SCREEN_H)
+		{
+			if (y > (SCREEN_H / 2))
+				mlx_put_pixel(game->gfx.img_ptr, x, y, get_rgba(137, 81, 41, 255));
+			else
+				mlx_put_pixel(game->gfx.img_ptr, x, y, get_rgba(130, 200, 229, 255));
+			y++;
+		}
+		x++;
+	}
 	x = 0;
 	while (x < SCREEN_W)
 	{
@@ -153,7 +153,12 @@ void	render_frame(t_game *game)
 				mapY += stepY;
 				side = 1;
 			}
-			if (game->map.grid[mapX][mapY] == '1')
+			if (mapX >= 0 && mapX < game->map.height && mapY >= 0 && mapY < game->map.width)
+			{
+				if (game->map.grid[mapX][mapY] == '1')
+					hit = 1;
+			}
+			else
 				hit = 1;
 		}
 		if (side == 0)
@@ -176,14 +181,100 @@ void	render_frame(t_game *game)
 				mlx_put_pixel(game->gfx.img_ptr, x, y, get_rgba(180, 222, 33, 255));
 			y++;
 		}
-		oldDirX = game->player.dir_x;
-		rotSpeed = 0.05;
-		game->player.dir_x = game->player.dir_x * cos(-rotSpeed) - game->player.dir_y * sin(-rotSpeed);
-		game->player.dir_y = oldDirX * sin(-rotSpeed) + game->player.dir_y * cos(-rotSpeed);
 		x++;
 	}
-	
+}
 
+
+void	ft_hook(void* param)
+{
+	t_game *game;
+	double oldDirX;
+	double oldPlaneX;
+	double  margin;
+    double  next_x;
+    double  next_y;
+
+	game = param;
+	game->player.move_speed = 0.02;
+	game->player.rot_speed = 0.02;
+	margin = 0.1;
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_ESCAPE))
+	{
+		mlx_close_window(game->gfx.mlx_ptr);
+		//ft_free_map(game);
+	}
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_W))
+    {
+        next_x = game->player.x + (game->player.dir_x * game->player.move_speed);
+        next_y = game->player.y + (game->player.dir_y * game->player.move_speed);
+        if (game->player.dir_x > 0)
+        {
+            if (game->map.grid[(int)(game->player.y)][(int)(next_x + margin)] != '1')
+                game->player.x = next_x;
+        }
+        else
+        {
+            if (game->map.grid[(int)(game->player.y)][(int)(next_x - margin)] != '1')
+                game->player.x = next_x;
+        }
+        if (game->player.dir_y > 0)
+        {
+            if (game->map.grid[(int)(next_y + margin)][(int)(game->player.x)] != '1')
+                game->player.y = next_y;
+        }
+        else
+        {
+            if (game->map.grid[(int)(next_y - margin)][(int)(game->player.x)] != '1')
+                game->player.y = next_y;
+        }
+    }
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_S))
+    {
+        next_x = game->player.x - (game->player.dir_x * game->player.move_speed);
+        next_y = game->player.y - (game->player.dir_y * game->player.move_speed);
+        if (game->player.dir_x < 0)
+        {
+            if (game->map.grid[(int)(game->player.y)][(int)(next_x + margin)] != '1')
+                game->player.x = next_x;
+        }
+        else
+        {
+            if (game->map.grid[(int)(game->player.y)][(int)(next_x - margin)] != '1')
+                game->player.x = next_x;
+        }
+
+        if (game->player.dir_y < 0)
+        {
+            if (game->map.grid[(int)(next_y + margin)][(int)(game->player.x)] != '1')
+                game->player.y = next_y;
+        }
+        else
+        {
+            if (game->map.grid[(int)(next_y - margin)][(int)(game->player.x)] != '1')
+                game->player.y = next_y;
+        }
+    }
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_D))
+	{
+		oldDirX = game->player.dir_x;
+		game->player.dir_x = game->player.dir_x * cos(-game->player.rot_speed) - game->player.dir_y * sin(-game->player.rot_speed);
+		game->player.dir_y = oldDirX * sin(-game->player.rot_speed) + game->player.dir_y * cos(-game->player.rot_speed);
+
+		oldPlaneX = game->player.plane_x;
+		game->player.plane_x = game->player.plane_x * cos(-game->player.rot_speed) - game->player.plane_y * sin(-game->player.rot_speed);
+		game->player.plane_y = oldPlaneX * sin(-game->player.rot_speed) + game->player.plane_y * cos(-game->player.rot_speed);
+	}
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_A))
+	{
+		oldDirX = game->player.dir_x;
+		game->player.dir_x = game->player.dir_x * cos(game->player.rot_speed) - game->player.dir_y * sin(game->player.rot_speed);
+		game->player.dir_y = oldDirX * sin(game->player.rot_speed) + game->player.dir_y * cos(game->player.rot_speed);
+		oldPlaneX = game->player.plane_x;
+		game->player.plane_x = game->player.plane_x * cos(game->player.rot_speed) - game->player.plane_y * sin(game->player.rot_speed);
+		game->player.plane_y = oldPlaneX * sin(game->player.rot_speed) + game->player.plane_y * cos(game->player.rot_speed);
+	}
+	render_frame(game);
 }
 
 int	main(void)
@@ -202,31 +293,13 @@ int	main(void)
 		conststr(mlx_strerror(mlx_errno));
 		return(EXIT_FAILURE);
 	}
-
-	int	x = 0;
-	while (x < SCREEN_W)
-	{
-		int	y = 0;
-		while (y < SCREEN_H)
-		{
-			if (y > (SCREEN_H / 2))
-				mlx_put_pixel(game.gfx.img_ptr, x, y, get_rgba(137, 81, 41, 255));
-			else
-				mlx_put_pixel(game.gfx.img_ptr, x, y, get_rgba(130, 200, 229, 255));
-			y++;
-		}
-		x++;
-	}
 	if (mlx_image_to_window(game.gfx.mlx_ptr, game.gfx.img_ptr, 0, 0) == -1)
 	{
 		mlx_close_window(game.gfx.mlx_ptr);
 		conststr(mlx_strerror(mlx_errno));
 		return(EXIT_FAILURE);
 	}
-
 	mlx_loop_hook(game.gfx.mlx_ptr, ft_hook, &game);
-
-	render_frame(&game);
 
 	mlx_loop(game.gfx.mlx_ptr);
 	mlx_delete_image(game.gfx.mlx_ptr, game.gfx.img_ptr);
