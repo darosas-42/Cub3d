@@ -9,6 +9,7 @@
 # include "MLX42.h" // Incluye tu librería MLX correspondiente
 # include "ft_printf.h" // Added to use printf
 # include "libft.h" // Added to use strlen and strnstr
+# include "get_next_line.h" // Added to use getnextline
 
 // --- CONSTANTES ---
 # define SCREEN_W 1024

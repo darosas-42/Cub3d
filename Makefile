@@ -3,6 +3,7 @@ NAME = cub3d
 COMPILER = cc
 
 INCLUDES = -I ./Libft/includes \
+			-I ./Libft/Get_next_line \
 		   -I ./include \
 		   -I ./MLX42/include/MLX42
 
