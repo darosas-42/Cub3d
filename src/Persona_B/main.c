@@ -6,7 +6,7 @@
 /*   By: dreix <darosas-@student.42malaga.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/09 16:07:04 by dreix             #+#    #+#             */
-/*   Updated: 2026/07/15 01:27:59 by dreix            ###   ########.fr       */
+/*   Updated: 2026/07/16 02:09:17 by dreix            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -255,7 +255,7 @@ void	ft_hook(void* param)
                 game->player.y = next_y;
         }
     }
-	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_D))
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_D) || mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_RIGHT))
 	{
 		oldDirX = game->player.dir_x;
 		game->player.dir_x = game->player.dir_x * cos(-game->player.rot_speed) - game->player.dir_y * sin(-game->player.rot_speed);
@@ -265,7 +265,7 @@ void	ft_hook(void* param)
 		game->player.plane_x = game->player.plane_x * cos(-game->player.rot_speed) - game->player.plane_y * sin(-game->player.rot_speed);
 		game->player.plane_y = oldPlaneX * sin(-game->player.rot_speed) + game->player.plane_y * cos(-game->player.rot_speed);
 	}
-	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_A))
+	if (mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_A) || mlx_is_key_down(game->gfx.mlx_ptr, MLX_KEY_LEFT))
 	{
 		oldDirX = game->player.dir_x;
 		game->player.dir_x = game->player.dir_x * cos(game->player.rot_speed) - game->player.dir_y * sin(game->player.rot_speed);
