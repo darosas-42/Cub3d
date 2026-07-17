@@ -2,3 +2,6 @@ NO ./textures/borrar.c
 SO ./textures/borrar.c
 WE ./textures/borrar.c
 EA ./textures/borrar.c
+
+F 202,90,6
+C 225,30,1
