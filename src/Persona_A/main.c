@@ -6,7 +6,7 @@
 /*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/18 20:36:01 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/19 18:59:28 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,11 @@ void	free_split(char **split)
 		i++;
 	}
 	free(split);
+}
+
+void	struct_saver(char *compass, t_)
+{
+	if (compass == "NO")
 }
 
 int file_walls(char *file, char *compass)
@@ -168,6 +173,7 @@ int file_color(char *file, char *compass)
 							}
 							if (found == 0)
 								break;
+
 							j++;
 						}
 					}
@@ -226,13 +232,13 @@ int	count_map_lines(char *file)
 	return (count);
 }
 
-char	**create_map(char *file)
+char	**save_map(char *file)
 {
-	int	num_lines;
-	int	fd_file;
-	char *line;
-	char **map;
-	int	i;
+	int		num_lines;
+	int		fd_file;
+	char	*line;
+	char	**map;
+	int		i;
 
 	num_lines = count_map_lines(file);
 	i = 0;
@@ -244,7 +250,10 @@ char	**create_map(char *file)
 	while (line)
 	{
 		if (is_map_line(line))
-			map[i++] = line;
+		{
+			map[i++] = ft_strtrim(line, "\n");
+			free(line);
+		}
 		else
 			free(line);
 		line = get_next_line(fd_file);
@@ -253,105 +262,125 @@ char	**create_map(char *file)
 	return (map);
 }
 
-int	map_width(char **map)
+int	map_height(t_map_info *map)
+{
+	int	i;
+
+	i = 0;
+	while (map->grid[i])
+		i++;
+	return (i);
+}
+
+int	map_width(t_map_info *map)
 {
 	int	i;
 	int	max;
-	int	len;
 
 	i = 0;
 	max = 0;
-	while (map[i])
+	while (map->grid[i])
 	{
-		len = ft_strlen(map[i]);
-		if (len > max)
-			max = len;
+		if ((int)ft_strlen(map->grid[i]) > max)
+			max = ft_strlen(map->grid[i]);
 		i++;
 	}
 	return (max);
 }
 
-char	**expand_map(char **map)
+char	**expand_map(t_map_info *map)
 {
-	int	w;
-	int h;
 	char	**new_map;
 	int 	i;
-	int		x
+	int		x;
 	int		y;
+	int		len;
 
 	i = 0;
-	x = 0;
-	y = 0;
-	h = count_words(map);
-	w = map_width(map);
-	new_map = malloc(sizeof(char *) * (h + 3));
-	while (i < h + 2)
+	len = 0;
+	map->height = map_height(map);
+	map->width = map_width(map);
+	new_map = malloc(sizeof(char *) * (map->height + 3));
+	while (i < map->height + 3)
 	{
-		new_map[i] = malloc(sizeof(char) * (old_width + 3));
+		new_map[i] = malloc(sizeof(char) * (map->width + 3));
 		i++;
 	}
-	while(y < h + 2)
+	y = 0;
+	while (y < map->height + 3)
 	{
-		while(x < w + 2)
-		{
-			new_map[y][x] = ' ';
-			x++;
-		}
-		new_map[y][w + 2] = '\0';
+		x = 0;
+		while (x < map->width + 2)
+			new_map[y][x++] = ' ';
+		new_map[y][map->width + 2] = '\0';
 		y++;
 	}
-	for (int y = 0; y < old_height; y++)
+	y = 0;
+	while (y < map->height)
 	{
-    	for (int x = 0; x < old_width; x++)
-    	{
-    	    new_map[y + 1][x + 1] = map[y][x];
-	    }
+		len = ft_strlen(map->grid[y]);
+		x = 0;
+		while (x < len)
+		{
+			new_map[y + 1][x + 1] = map->grid[y][x];
+			x++;
+		}
+		y++;
 	}
 	return (new_map);
 }
 
-static void	flood_fill(char **ctx, int x, int y)
+static int	flood_fill(char **map_exp, int x, int y, t_map_info *map)
 {
 	char	c;
 
-	if (x < 0 || x >= ctx->width || y < 0 || y >= ctx->height)
-		return ;
-	c = ctx->map[y][x];
-	if (c == '1' || c == 'V')
-		return ;
-	if (c == ' ')
-		return ;
-	if (c == 'C')
-		ctx->found->collectible++;
-	else if (c == 'E')
-		ctx->found->exit++;
-	ctx->map[y][x] = 'V';
-	flood_fill(ctx, x + 1, y);
-	flood_fill(ctx, x - 1, y);
-	flood_fill(ctx, x, y + 1);
-	flood_fill(ctx, x, y - 1);
-}
-
-int	file_map(char *file)
-{
-	char **map;
-	char **map_exp;
-	int	i;
-
-	map = create_map(file);
-	i = 0;
-	while (map[i])
+	if (x < 0 || x >= map->width + 2 || y < 0 || y >= map->height + 2)
 	{
-		printf("%s\n", map[i]);
-		i++;
+		//printf("FUERA (%d,%d)\n", x, y);
+		return (0);
 	}
-	map_exp = expand_map(map);
-	flood_fill(new_map, 0, 0);
+	c = map_exp[y][x];
+	//printf("(%2d,%2d) -> '%c'\n", x, y, c ? c : '#');
+	if (c == 'V' || c == '1')
+		return (0);
+	if (ft_strchr("0NSEW", c))
+	{
+	//	printf("TOCADO '%c' EN (%d,%d)\n", c, x, y);
+		return (1);
+	}
+	map_exp[y][x] = 'V';
+	if (flood_fill(map_exp, x + 1, y, map))
+		return (1);
+	if (flood_fill(map_exp, x - 1, y, map))
+		return (1);
+	if (flood_fill(map_exp, x, y + 1, map))
+		return (1);
+	if (flood_fill(map_exp, x, y - 1, map))
+		return (1);
 	return (0);
 }
 
-int	parser_file_content(char *file)
+int	file_map(char *file, t_map_info *map)
+{
+	//char **map;
+	//t_map_info map;
+	char **map_exp;
+
+	map->grid = save_map(file);
+	map_exp = expand_map(map);
+	(void)map_exp;
+	/*printf("map.width = %d\n", map->width);
+	for (int y = 0; y < map->height + 2; y++)
+	{
+		 printf("fila %2d: strlen=%zu\n", y, ft_strlen(map_exp[y]));
+		//printf("%2d |%s|\n", y, map_exp[y]);
+	}*/
+	if (flood_fill(map_exp, 0, 0, map) != 0)
+		return (1);
+	return (0);
+}
+
+int	parser_file_content(char *file, t_map_info *map)
 {
 	if (file_walls(file, "NO") != 0)
 		printf("Error\nThere is an error in your .cub file"
@@ -371,7 +400,7 @@ int	parser_file_content(char *file)
 	else if (file_color(file, "C") != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding ceiling color.\n");
-	else if (file_map(file) != 0)
+	else if (file_map(file, map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding the map.\n");
 	else
@@ -404,6 +433,8 @@ int	parser_file_extension(char *file)
 /*
 int	main(int argc, char **argv)
 {
+	t_map_info map;
+
 	(void)argv;
 	if (argc != 2)
 	{
@@ -413,6 +444,7 @@ int	main(int argc, char **argv)
 	}
 	if (parser_file_extension(argv[1]) != 0)
 		return (1);
-	parser_file_content(argv[1]);
+	parser_file_content(argv[1], &map);
 	return (0);
-}*/
+}
+*/
