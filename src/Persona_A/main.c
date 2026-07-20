@@ -6,7 +6,7 @@
 /*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/19 18:59:28 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/20 18:02:53 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,12 +37,14 @@ void	free_split(char **split)
 	free(split);
 }
 
-void	struct_saver(char *compass, t_)
+void	struct_saver(char *compass, t_map_info *map, char *choosen)
 {
-	if (compass == "NO")
+	if (ft_strncmp(compass, "NO", 3) == 0)
+		map->no_path = ft_strdup(choosen);
+	printf("LA RUTA PRIMERA ES: %s\n", map->no_path);
 }
 
-int file_walls(char *file, char *compass)
+int file_walls(char *file, char *compass, t_map_info *map)
 {
     char    *line;
     char    **choosen;
@@ -80,6 +82,7 @@ int file_walls(char *file, char *compass)
                         close(fd_choosen);
                         found = 1;
                     }
+				//	printf("LA VARIABLE ES %s\n\n", choosen[i]);
 					if (choosen[2] != NULL)
 					{
     					free_split(choosen);
@@ -87,6 +90,7 @@ int file_walls(char *file, char *compass)
     					close(fd_file);
     					return (1);
 					}
+					struct_saver(compass, map, choosen[i]);
                     break;
                 }
                 i++;
@@ -382,16 +386,16 @@ int	file_map(char *file, t_map_info *map)
 
 int	parser_file_content(char *file, t_map_info *map)
 {
-	if (file_walls(file, "NO") != 0)
+	if (file_walls(file, "NO", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding north texture.\n");
-	else if (file_walls(file, "SO") != 0)
+	else if (file_walls(file, "SO", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding south texture.\n");
-	else if (file_walls(file, "WE") != 0)
+	else if (file_walls(file, "WE", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding west texture.\n");
-	else if (file_walls(file, "EA") != 0)
+	else if (file_walls(file, "EA", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding east texture.\n");
 	else if (file_color(file, "F") != 0)
