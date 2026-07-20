@@ -6,7 +6,7 @@
 /*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/20 18:02:53 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/20 23:30:30 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,16 @@ void	struct_saver(char *compass, t_map_info *map, char *choosen)
 {
 	if (ft_strncmp(compass, "NO", 3) == 0)
 		map->no_path = ft_strdup(choosen);
-	printf("LA RUTA PRIMERA ES: %s\n", map->no_path);
+	else if (ft_strncmp(compass, "SO", 3) == 0)
+		map->so_path = ft_strdup(choosen);
+	else if (ft_strncmp(compass, "WE", 3) == 0)
+		map->we_path = ft_strdup(choosen);
+	else if (ft_strncmp(compass, "EA", 3) == 0)
+		map->ea_path = ft_strdup(choosen);
+	printf("LA RUTA NORTE ES: %s\n", map->no_path);
+	printf("LA RUTA SUR ES: %s\n", map->so_path);
+	printf("LA RUTA ESTE ES: %s\n", map->we_path);
+	printf("LA RUTA OESTE ES: %s\n", map->ea_path);
 }
 
 int file_walls(char *file, char *compass, t_map_info *map)
@@ -450,5 +459,4 @@ int	main(int argc, char **argv)
 		return (1);
 	parser_file_content(argv[1], &map);
 	return (0);
-}
-*/
+}*/
