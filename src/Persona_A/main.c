@@ -6,7 +6,7 @@
 /*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/20 23:30:30 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/21 12:31:09 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,10 +47,36 @@ void	struct_saver(char *compass, t_map_info *map, char *choosen)
 		map->we_path = ft_strdup(choosen);
 	else if (ft_strncmp(compass, "EA", 3) == 0)
 		map->ea_path = ft_strdup(choosen);
-	printf("LA RUTA NORTE ES: %s\n", map->no_path);
+
+	if (map->list == 0
+		&& map->no_path
+		&& map->so_path
+		&& map->we_path
+		&& map->ea_path)
+	{
+		map->list++;
+	}
+	printf("LA LISTA VALE: %d\n", map->list);
+
+	/*printf("LA RUTA NORTE ES: %s\n", map->no_path);
 	printf("LA RUTA SUR ES: %s\n", map->so_path);
 	printf("LA RUTA ESTE ES: %s\n", map->we_path);
-	printf("LA RUTA OESTE ES: %s\n", map->ea_path);
+	printf("LA RUTA OESTE ES: %s\n", map->ea_path);*/
+}
+
+void	color_saver(char *compass, t_map_info *map, int color)
+{
+	if (ft_strncmp(compass, "F", 2) == 0)
+		map->floor_color = color;
+	else if (ft_strncmp(compass, "C", 2) == 0)
+		map->ceiling_color = color;
+	if (map->list == 1 && map->floor_color && map->ceiling_color)
+	{
+		map->list++;
+	}
+	printf("LA LISTA 2 VALE: %d\n", map->list);
+/*	printf("EL COLOR SUELO ES: %d\n", map->floor_color);
+	printf("EL COLOR CIELO ES: %d\n", map->ceiling_color);*/
 }
 
 int file_walls(char *file, char *compass, t_map_info *map)
@@ -113,7 +139,12 @@ int file_walls(char *file, char *compass, t_map_info *map)
     return (!found);
 }
 
-int file_color(char *file, char *compass)
+int	rgb_parser(int r, int g, int b)
+{
+	return ((r << 16) | (g << 8) | b);
+}
+
+int file_color(char *file, char *compass, t_map_info *map)
 {
     char    *line;
     char    **choosen;
@@ -123,6 +154,10 @@ int file_color(char *file, char *compass)
     int     fd_file;
     int     found;
     int     i;
+	int		r;
+	int		g;
+	int		b;
+	int		color;
 
 	j = 0;
 	k = 0;
@@ -186,7 +221,14 @@ int file_color(char *file, char *compass)
 							}
 							if (found == 0)
 								break;
-
+							if (j == 0)
+								r = value;
+							else if (j == 1)
+								g = value;
+							else if (j == 2)
+								b = value;
+							color = rgb_parser(r, g, b);
+							color_saver(compass, map, color);
 							j++;
 						}
 					}
@@ -215,7 +257,8 @@ int	is_map_line(char *line)
 {
 	while (*line == ' ')
 		line++;
-
+	if (*line == '\n' || *line == '\0')
+		return (0);
 	while (*line)
 	{
 		if (!ft_strchr(" 01NSEW\n", *line))
@@ -224,6 +267,71 @@ int	is_map_line(char *line)
 	}
 	return (1);
 }
+int	is_empty_line(char *line)
+{
+	while (*line == ' ')
+		line++;
+	if (*line == '\n' || *line == '\0')
+		return (1);
+	return (0);
+}
+
+int	check_map_last(char *file)
+{
+	int		fd;
+	int		in_map;
+	int		after_map;
+	char	*line;
+
+	fd = open(file, O_RDONLY);
+	if (fd == -1)
+		return (1);
+
+	in_map = 0;
+	after_map = 0;
+	line = get_next_line(fd);
+
+	while (line)
+	{
+		if (!in_map)
+		{
+			if (is_map_line(line))
+				in_map = 1;
+		}
+		else
+		{
+			if (after_map)
+			{
+				if (!is_empty_line(line))
+				{
+					free(line);
+					close(fd);
+					return (1);
+				}
+			}
+			else
+			{
+				if (!is_map_line(line))
+				{
+					if (is_empty_line(line))
+						after_map = 1;
+					else
+					{
+						free(line);
+						close(fd);
+						return (1);
+					}
+				}
+			}
+		}
+		free(line);
+		line = get_next_line(fd);
+	}
+	close(fd);
+	return (0);
+}
+
+
 int	count_map_lines(char *file)
 {
 	int		fd;
@@ -379,6 +487,10 @@ int	file_map(char *file, t_map_info *map)
 	//t_map_info map;
 	char **map_exp;
 
+	if (map->list != 2)
+		return (1);
+	if (check_map_last(file))
+		return (1);
 	map->grid = save_map(file);
 	map_exp = expand_map(map);
 	(void)map_exp;
@@ -407,10 +519,10 @@ int	parser_file_content(char *file, t_map_info *map)
 	else if (file_walls(file, "EA", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding east texture.\n");
-	else if (file_color(file, "F") != 0)
+	else if (file_color(file, "F", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding floor color.\n");
-	else if (file_color(file, "C") != 0)
+	else if (file_color(file, "C", map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding ceiling color.\n");
 	else if (file_map(file, map) != 0)
@@ -443,7 +555,7 @@ int	parser_file_extension(char *file)
 	}
 	return (0);
 }
-/*
+
 int	main(int argc, char **argv)
 {
 	t_map_info map;
@@ -459,4 +571,4 @@ int	main(int argc, char **argv)
 		return (1);
 	parser_file_content(argv[1], &map);
 	return (0);
-}*/
+}
