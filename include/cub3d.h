@@ -24,10 +24,19 @@ typedef struct s_map_info
     char    *we_path;    // Ruta a la textura Oeste
     char    *ea_path;    // Ruta a la textura Este
     
+    int    no_ind;
+    int    so_ind;
+    int    we_ind;
+    int    ea_ind;
     // Los colores del techo (Ceiling) y suelo (Floor) en formato RGB
     // Se suelen guardar como un int (ARGB) para que la MLX los entienda rápido
     int     floor_color; 
     int     ceiling_color;
+
+    int    floor_ind;
+    int    ceiling_ind;
+
+    bool     player_pos;
 
     // El mapa en sí
     char    **grid;      // La matriz del mapa (el laberinto)

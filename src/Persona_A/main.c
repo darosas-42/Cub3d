@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
+/*   By: cacortes <cacortes@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/21 12:31:09 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/22 16:47:03 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,23 +40,25 @@ void	free_split(char **split)
 void	struct_saver(char *compass, t_map_info *map, char *choosen)
 {
 	if (ft_strncmp(compass, "NO", 3) == 0)
-		map->no_path = ft_strdup(choosen);
-	else if (ft_strncmp(compass, "SO", 3) == 0)
-		map->so_path = ft_strdup(choosen);
-	else if (ft_strncmp(compass, "WE", 3) == 0)
-		map->we_path = ft_strdup(choosen);
-	else if (ft_strncmp(compass, "EA", 3) == 0)
-		map->ea_path = ft_strdup(choosen);
-
-	if (map->list == 0
-		&& map->no_path
-		&& map->so_path
-		&& map->we_path
-		&& map->ea_path)
 	{
-		map->list++;
+		map->no_path = ft_strdup(choosen);
+		map->no_ind++;
 	}
-	printf("LA LISTA VALE: %d\n", map->list);
+	else if (ft_strncmp(compass, "SO", 3) == 0)
+	{
+		map->so_path = ft_strdup(choosen);
+		map->so_ind++;
+	}
+	else if (ft_strncmp(compass, "WE", 3) == 0)
+	{
+		map->we_path = ft_strdup(choosen);
+		map->we_ind++;
+	}
+	else if (ft_strncmp(compass, "EA", 3) == 0)
+	{
+		map->ea_path = ft_strdup(choosen);
+		map->ea_ind++;
+	}
 
 	/*printf("LA RUTA NORTE ES: %s\n", map->no_path);
 	printf("LA RUTA SUR ES: %s\n", map->so_path);
@@ -67,17 +69,19 @@ void	struct_saver(char *compass, t_map_info *map, char *choosen)
 void	color_saver(char *compass, t_map_info *map, int color)
 {
 	if (ft_strncmp(compass, "F", 2) == 0)
-		map->floor_color = color;
-	else if (ft_strncmp(compass, "C", 2) == 0)
-		map->ceiling_color = color;
-	if (map->list == 1 && map->floor_color && map->ceiling_color)
 	{
-		map->list++;
+		map->floor_color = color;
+		map->floor_ind++;
 	}
-	printf("LA LISTA 2 VALE: %d\n", map->list);
+	else if (ft_strncmp(compass, "C", 2) == 0)
+	{
+		map->ceiling_color = color;
+		map->ceiling_ind++;
+	}
 /*	printf("EL COLOR SUELO ES: %d\n", map->floor_color);
 	printf("EL COLOR CIELO ES: %d\n", map->ceiling_color);*/
 }
+
 
 int file_walls(char *file, char *compass, t_map_info *map)
 {
@@ -99,7 +103,7 @@ int file_walls(char *file, char *compass, t_map_info *map)
     while (line)
     {
         if (ft_strncmp(line, compass, ft_strlen(compass)) == 0 && line[ft_strlen(compass)] == ' ')
-        {
+        {	
             choosen = ft_split(line, ' ');
             if (!choosen)
 				return (free(line), close(fd_file), 1);
@@ -487,8 +491,6 @@ int	file_map(char *file, t_map_info *map)
 	//t_map_info map;
 	char **map_exp;
 
-	if (map->list != 2)
-		return (1);
 	if (check_map_last(file))
 		return (1);
 	map->grid = save_map(file);
@@ -501,6 +503,23 @@ int	file_map(char *file, t_map_info *map)
 		//printf("%2d |%s|\n", y, map_exp[y]);
 	}*/
 	if (flood_fill(map_exp, 0, 0, map) != 0)
+		return (1);
+	return (0);
+}
+
+int	copycat_detector(t_map_info *map)
+{
+	if (map->no_ind > 1)
+		return (1);
+	if (map->so_ind > 1)
+		return (1);
+	if (map->we_ind > 1)
+		return (1);
+	if (map->ea_ind > 1)
+		return (1);
+	if (map->floor_ind > 1)
+		return (1);
+	if (map->ceiling_ind > 1)
 		return (1);
 	return (0);
 }
@@ -528,8 +547,10 @@ int	parser_file_content(char *file, t_map_info *map)
 	else if (file_map(file, map) != 0)
 		printf("Error\nThere is an error in your .cub file"
 			" regarding the map.\n");
-	else
-		printf("GOOD\n");
+	else if (copycat_detector(map) != 0)
+		printf("Error\nThere is a duplicate indicator in your .cub file.\n");
+	else // Estas líneas
+		printf("GOOD\n"); // Se van a quitar en el final
 	return (0);
 }
 
@@ -556,11 +577,36 @@ int	parser_file_extension(char *file)
 	return (0);
 }
 
+void	init_map_info(t_map_info *map)
+{
+	map->no_path = NULL;
+	map->so_path = NULL;
+	map->we_path = NULL;
+	map->ea_path = NULL;
+
+	map->no_ind = 0;
+	map->so_ind = 0;
+	map->we_ind = 0;
+	map->ea_ind = 0;
+
+	map->floor_color = 0;
+	map->ceiling_color = 0;
+
+	map->floor_ind = 0;
+	map->ceiling_ind = 0;
+
+	map->player_pos = 0;
+
+	map->grid = NULL;
+	map->width = 0;
+	map->height = 0;
+}
+/*
 int	main(int argc, char **argv)
 {
 	t_map_info map;
 
-	(void)argv;
+	init_map_info(&map);
 	if (argc != 2)
 	{
 		printf("Error\nThe number of arguments entered"
@@ -571,4 +617,4 @@ int	main(int argc, char **argv)
 		return (1);
 	parser_file_content(argv[1], &map);
 	return (0);
-}
+}*/
