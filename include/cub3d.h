@@ -37,6 +37,7 @@ typedef struct s_map_info
     int    ceiling_ind;
 
     bool     player_pos;
+	int		player_ind;
 
     // El mapa en sí
     char    **grid;      // La matriz del mapa (el laberinto)

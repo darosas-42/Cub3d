@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cacortes <cacortes@student.42malaga.com    +#+  +:+       +#+        */
+/*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/09 16:07:04 by dreix             #+#    #+#             */
-/*   Updated: 2026/07/22 16:47:20 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/23 09:57:28 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cub3d.h"
-
+/*
 static void	conststr(const char *s)
 {
 	int	i;
@@ -26,13 +26,13 @@ static void	conststr(const char *s)
 
 void	ft_free_map(t_game *game)
 {
-/* 	int	i;
+*//* 	int	i;
 
 	if (!game->map.grid)
 		return;
 	i = game->map.height;
 	while (--i > -1)
-		free(game->map.grid[i]); */
+		free(game->map.grid[i]); *//*
 	free(game->map.grid);
 	game->map.grid = NULL;
 }
@@ -306,3 +306,4 @@ int	main(void)
 	mlx_terminate(game.gfx.mlx_ptr);
 	return (EXIT_SUCCESS);
 }
+*/

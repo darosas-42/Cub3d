@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cacortes <cacortes@student.42malaga.com    +#+  +:+       +#+        */
+/*   By: cacortes <cacortes@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/07/12 09:31:07 by cacortes          #+#    #+#             */
-/*   Updated: 2026/07/22 16:47:03 by cacortes         ###   ########.fr       */
+/*   Updated: 2026/07/23 12:47:18 by cacortes         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,22 @@ void	free_split(char **split)
 	free(split);
 }
 
-void	struct_saver(char *compass, t_map_info *map, char *choosen)
+int	texture_extension(char *texture)
+{
+	int	start;
+
+	start = ft_strlen(texture) - 4;
+	if (start < 0 || ft_strncmp(&texture[start], ".xpm", 4) != 0)
+	{
+		printf("Error\n"
+			"The texture you are trying to enter"
+			" is not valid or doesn't exists.\n");
+		return (1);
+	}
+	return (0);
+}
+
+int	struct_saver(char *compass, t_map_info *map, char *choosen)
 {
 	if (ft_strncmp(compass, "NO", 3) == 0)
 	{
@@ -59,11 +74,7 @@ void	struct_saver(char *compass, t_map_info *map, char *choosen)
 		map->ea_path = ft_strdup(choosen);
 		map->ea_ind++;
 	}
-
-	/*printf("LA RUTA NORTE ES: %s\n", map->no_path);
-	printf("LA RUTA SUR ES: %s\n", map->so_path);
-	printf("LA RUTA ESTE ES: %s\n", map->we_path);
-	printf("LA RUTA OESTE ES: %s\n", map->ea_path);*/
+	return (0);
 }
 
 void	color_saver(char *compass, t_map_info *map, int color)
@@ -114,6 +125,8 @@ int file_walls(char *file, char *compass, t_map_info *map)
                 if (choosen[i][0] == '.' && choosen[i][1] == '/')
                 {
                     filename = ft_strtrim(choosen[i], "\n");
+					if (texture_extension(filename) != 0)
+						return (1);
                     fd_choosen = open(filename, O_RDONLY);
                     free(filename);
                     if (fd_choosen != -1)
@@ -129,7 +142,8 @@ int file_walls(char *file, char *compass, t_map_info *map)
     					close(fd_file);
     					return (1);
 					}
-					struct_saver(compass, map, choosen[i]);
+					if (struct_saver(compass, map, choosen[i]))
+						return (1);
                     break;
                 }
                 i++;
@@ -231,10 +245,11 @@ int file_color(char *file, char *compass, t_map_info *map)
 								g = value;
 							else if (j == 2)
 								b = value;
-							color = rgb_parser(r, g, b);
-							color_saver(compass, map, color);
+
 							j++;
 						}
+						color = rgb_parser(r, g, b);
+						color_saver(compass, map, color);
 					}
 					if (choosen[2] != NULL)
 					{
@@ -357,18 +372,19 @@ int	count_map_lines(char *file)
 	return (count);
 }
 
-char	**save_map(char *file)
+char	**save_map(char *file, t_map_info *map)
 {
 	int		num_lines;
 	int		fd_file;
 	char	*line;
-	char	**map;
+	char	**map_save;
 	int		i;
 
 	num_lines = count_map_lines(file);
 	i = 0;
-	map = malloc(sizeof(char *) * (num_lines + 1));
-	if (!map)
+	(void)map;
+	map_save = malloc(sizeof(char *) * (num_lines + 1));
+	if (!map_save)
 		return (NULL);
 	fd_file = open(file, O_RDONLY);
 	line = get_next_line(fd_file);
@@ -376,15 +392,15 @@ char	**save_map(char *file)
 	{
 		if (is_map_line(line))
 		{
-			map[i++] = ft_strtrim(line, "\n");
+			map_save[i++] = ft_strtrim(line, "\n");
 			free(line);
 		}
 		else
 			free(line);
 		line = get_next_line(fd_file);
 	}
-	map[i] = NULL;
-	return (map);
+	map_save[i] = NULL;
+	return (map_save);
 }
 
 int	map_height(t_map_info *map)
@@ -485,6 +501,28 @@ static int	flood_fill(char **map_exp, int x, int y, t_map_info *map)
 	return (0);
 }
 
+int	check_player_pos(char **map_save, t_map_info *map)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (map_save[i])
+	{
+		j = 0;
+		while (map_save[i][j])
+		{
+			if (ft_strchr("NSEW", map_save[i][j]))
+				map->player_ind++;
+			j++;
+		}
+		i++;
+	}
+	if (map->player_ind != 1)
+		return (1);
+	return (0);
+}
+
 int	file_map(char *file, t_map_info *map)
 {
 	//char **map;
@@ -493,7 +531,9 @@ int	file_map(char *file, t_map_info *map)
 
 	if (check_map_last(file))
 		return (1);
-	map->grid = save_map(file);
+	map->grid = save_map(file, map);
+	if (check_player_pos(map->grid, map) != 0)
+		return (1);
 	map_exp = expand_map(map);
 	(void)map_exp;
 	/*printf("map.width = %d\n", map->width);
@@ -550,7 +590,13 @@ int	parser_file_content(char *file, t_map_info *map)
 	else if (copycat_detector(map) != 0)
 		printf("Error\nThere is a duplicate indicator in your .cub file.\n");
 	else // Estas líneas
-		printf("GOOD\n"); // Se van a quitar en el final
+	printf("GOOD\n"); // Se van a quitar en el final
+	/*printf("NO %d\n", map->no_ind);
+	printf("SO %d\n", map->so_ind);
+	printf("WE %d\n", map->we_ind);
+	printf("EA %d\n", map->ea_ind);
+	printf("F  %d\n", map->floor_ind);
+	printf("C  %d\n", map->ceiling_ind);*/
 	return (0);
 }
 
@@ -595,13 +641,13 @@ void	init_map_info(t_map_info *map)
 	map->floor_ind = 0;
 	map->ceiling_ind = 0;
 
-	map->player_pos = 0;
+	map->player_ind = 0;
 
 	map->grid = NULL;
 	map->width = 0;
 	map->height = 0;
 }
-/*
+
 int	main(int argc, char **argv)
 {
 	t_map_info map;
@@ -615,6 +661,7 @@ int	main(int argc, char **argv)
 	}
 	if (parser_file_extension(argv[1]) != 0)
 		return (1);
-	parser_file_content(argv[1], &map);
+	if (parser_file_content(argv[1], &map))
+		return (1);
 	return (0);
-}*/
+}
